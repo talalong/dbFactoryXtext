@@ -1,0 +1,9 @@
+grammar dbFactory.DbFactory with org.eclipse.xtext.common.Terminals
+
+generate dbFactory "http://www.DbFactory.dbFactory"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';
