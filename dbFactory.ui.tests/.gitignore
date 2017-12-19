@@ -1,4 +1,3 @@
-
 # Created by https://www.gitignore.io/api/xtext
 
 ### XText ###
@@ -21,3 +20,12 @@ logs.zip
 *.orig
 *.java._trace
 *.smap
+
+emf-gen/
+
+# for Maven builds
+target
+
+# for Gradle builds
+build
+.gradle
