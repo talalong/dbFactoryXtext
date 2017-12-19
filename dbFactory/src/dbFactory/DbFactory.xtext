@@ -5,7 +5,7 @@ generate dbFactory "http://www.DbFactory.dbFactory"
 Model:
 	command+=Command*'.';
 	
-Command: obj = Object;
+Command: obj = Object /*| db=Database*/;
 Object: 'Objekt' name=ID ('von' superType=[Object])? '{' 
 	attributes+=Attribute*
 	'}';
@@ -22,6 +22,17 @@ StandartType:
 	typeName = ('Text'|'text'|'Zahl'|'zahl')
 ;
 ObjectType:
+
 	typeObj = [Object]
 ;
+
+/*Database:
+'Datenbank' name=ID conn=Connection
+;
+Connection:
+	'verbindet' ' mit' host=Host
+;
+Host:;*/
+
+
 terminal ID:('A'..'Z' | 'a'..'z'| '_' | '!') ('a'..'z'|'A'..'Z'|'_'|'0'..'9'| '!')*;
