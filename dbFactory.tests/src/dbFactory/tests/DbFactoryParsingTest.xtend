@@ -27,11 +27,16 @@ class DbFactoryParsingTest {
 		val result = parseHelper.parse('''
 		Objekt Person 
 				{
-					Name:Text.
-					Alte: Zahl.
-				}.
-		Datenbank mySQL verbindet mit Host:'ThisIsMyHost', Passwort:'abc123', Port:8080.
-		In mySQL {Erzeuge Person . }.
+					Name:Text
+					Alte: Zahl
+				}
+		Datenbank mySQL verbindet mit Host:'ThisIsMyHost', Passwort:'abc123', Port:8080
+		In mySQL 
+		{
+			Erzeuge Person
+			Füge zu Person {}
+			
+		}
 		''')
 		
 		v.assertNoErrors(result)
@@ -42,7 +47,7 @@ class DbFactoryParsingTest {
 	def void loadDatabase(){
 		val result = parseHelper.parse(
 		'''
-		Datenbank mySQL verbindet mit Host:'ThisIsMyHost', Passwort:'abc123', Port:8080.
+		Datenbank mySQL verbindet mit Host:'ThisIsMyHost', Passwort:'abc123', Port:8080
 
 		''')
 		v.assertNoErrors(result)
