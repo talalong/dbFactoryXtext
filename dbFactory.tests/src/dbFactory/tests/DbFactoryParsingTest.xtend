@@ -11,12 +11,16 @@ import org.eclipse.xtext.testing.util.ParseHelper
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.eclipse.xtext.testing.validation.ValidationTestHelper
 
 @RunWith(XtextRunner)
 @InjectWith(DbFactoryInjectorProvider)
 class DbFactoryParsingTest {
 	@Inject
 	ParseHelper<Model> parseHelper
+	
+	@Inject  ValidationTestHelper v
+	
 	
 	@Test
 	def void loadModel() {
@@ -26,19 +30,24 @@ class DbFactoryParsingTest {
 					Name:Text.
 					Alte: Zahl.
 				}.
-				
+		Datenbank mySQL verbindet mit Host:'ThisIsMyHost', Passwort:'abc123', Port:8080.
+		In mySQL {Erzeuge Person . }.
 		''')
-		Assert.assertNotNull(result)
-		Assert.assertTrue(result.eResource.errors.isEmpty)
+		
+		v.assertNoErrors(result)
+//		Assert.assertNotNull(result)
+//		Assert.assertTrue(result.eResource.errors.isEmpty)
 	}
 	@Test
 	def void loadDatabase(){
 		val result = parseHelper.parse(
 		'''
-		Datenbank mySQL verbindet mit Host:ThisIsMyHost, Passwort:abc123, Port:8080.
+		Datenbank mySQL verbindet mit Host:'ThisIsMyHost', Passwort:'abc123', Port:8080.
+
 		''')
-		Assert.assertNotNull(result)
-		Assert.assertTrue(result.eResource.errors.isEmpty)
+		v.assertNoErrors(result)
+//		Assert.assertNotNull(result)
+//		Assert.assertTrue(result.eResource.errors.isEmpty)
 	}
 	
 }

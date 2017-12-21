@@ -3,7 +3,7 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 generate dbFactory "http://www.DbFactory.dbFactory"
 
 Model:
-	command+=Command* '.'
+	(command+=Command '.')*
 	;
 Command: 
 	obj = Object | db=Database | dbset = Setting
@@ -35,13 +35,13 @@ Connection:
 	'verbindet' 'mit' host=Host ',' pass=Password ',' port=Port
 ;
 Host: 
-'Host' ':' name=ID /*ANY_OTHER */
+'Host' ':' v=STRING /*ANY_OTHER */
 ;
 Password: 
-'Passwort' ':' name=ID
+'Passwort' ':' name=STRING
 ;
 Port: 
-'Port' ':' name=INT
+'Port' ':' v=INT
 ;
 Setting:
 	'In' dbObj = [Database] '{'
@@ -49,7 +49,7 @@ Setting:
 	'}'
 ;
 Create:
-	'Erzeuge' /*table=([Object]|Object) '.'*/
+	'Erzeuge' table=[Object] '.'
 ;
 Insert:
 	'Füge' 'zu' table=[Object] '{'
