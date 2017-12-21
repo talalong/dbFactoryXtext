@@ -48,7 +48,6 @@ class DbFactoryParsingTest {
 		val result = parseHelper.parse(
 		'''
 		Datenbank mySQL verbindet mit Host:'ThisIsMyHost', Passwort:'abc123', Port:8080
-
 		''')
 		v.assertNoErrors(result)
 //		Assert.assertNotNull(result)
