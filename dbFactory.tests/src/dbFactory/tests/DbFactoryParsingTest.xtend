@@ -21,9 +21,24 @@ class DbFactoryParsingTest {
 	@Test
 	def void loadModel() {
 		val result = parseHelper.parse('''
-			Hello Xtext!
+		Objekt Person 
+				{
+					Name:Text.
+					Alte: Zahl.
+				}.
+				
 		''')
 		Assert.assertNotNull(result)
 		Assert.assertTrue(result.eResource.errors.isEmpty)
 	}
+	@Test
+	def void loadDatabase(){
+		val result = parseHelper.parse(
+		'''
+		Datenbank mySQL verbindet mit Host:ThisIsMyHost, Passwort:abc123, Port:8080.
+		''')
+		Assert.assertNotNull(result)
+		Assert.assertTrue(result.eResource.errors.isEmpty)
+	}
+	
 }
