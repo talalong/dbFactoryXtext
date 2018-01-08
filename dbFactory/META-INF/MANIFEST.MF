@@ -25,5 +25,6 @@ Export-Package: dbFactory.serializer,
  dbFactory.parser.antlr.internal,
  dbFactory.validation,
  dbFactory.dbFactory.impl,
- dbFactory
+ dbFactory,
+ dbFactory.formatting2
 Import-Package: org.apache.log4j

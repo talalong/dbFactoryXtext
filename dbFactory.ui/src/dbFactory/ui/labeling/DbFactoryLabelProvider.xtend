@@ -6,6 +6,7 @@ package dbFactory.ui.labeling
 import com.google.inject.Inject
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider
 import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider
+import dbFactory.dbFactory.Database
 
 /**
  * Provides labels for EObjects.
@@ -20,7 +21,8 @@ class DbFactoryLabelProvider extends DefaultEObjectLabelProvider {
 	}
 
 	// Labels and icons can be computed like this:
-	
+	def text(dbFactory.dbFactory.Object ob){'Klasse ' +  ob.name}
+	def text(Database db){ 'DBKlasse ' + db.name}
 //	def text(Greeting ele) {
 //		'A greeting to ' + ele.name
 //	}

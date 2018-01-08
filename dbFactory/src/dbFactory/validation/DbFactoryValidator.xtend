@@ -3,6 +3,9 @@
  */
 package dbFactory.validation
 
+import dbFactory.dbFactory.Command
+import dbFactory.dbFactory.DbFactoryPackage
+import org.eclipse.xtext.validation.Check
 
 /**
  * This class contains custom validation rules. 
@@ -10,6 +13,7 @@ package dbFactory.validation
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class DbFactoryValidator extends AbstractDbFactoryValidator {
+	public static val SENTENCE_STARTS_CAPITAL = 'sentenceStartsCapital'
 	
 //	public static val INVALID_NAME = 'invalidName'
 //
@@ -21,5 +25,12 @@ class DbFactoryValidator extends AbstractDbFactoryValidator {
 //					INVALID_NAME)
 //		}
 //	}
-	
+	@Check
+	 def checkObjectStartWithCapital(Command command)
+	 {
+	 	if(!Character.isUpperCase(command.obj.name.charAt(0)))
+	 	{
+	 		warning('Der Name muss mit großem Buchstabe starten',DbFactoryPackage.Literals.COMMAND__OBJ,SENTENCE_STARTS_CAPITAL)
+	 	}
+	 }
 }

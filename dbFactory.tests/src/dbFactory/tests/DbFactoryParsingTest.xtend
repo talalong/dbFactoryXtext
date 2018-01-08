@@ -35,7 +35,10 @@ class DbFactoryParsingTest {
 		{
 			Erzeuge Person
 			Füge zu Person {}
-			
+			Zeige von Person {}
+			Füge zu Person{}
+			Lösche aus Person {}
+			Ändere in Person {}
 		}
 		''')
 		

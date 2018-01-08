@@ -3,16 +3,20 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 generate dbFactory "http://www.DbFactory.dbFactory"
 
 Model:
-	(command+=Command)*
+	//(command+=Command)*
+	(cmdTypes += Object | cmdTypes+=Database | cmdTypes += Query)+
 	;
 Command: 
-	obj = Object | db=Database | dbset = Setting
+	obj = Object | db=Database | query = Query
+;
+CommandType:
+	Object | Database | Query
 ;
 Object: 
 ('Objekt') name=ID ('von' superType=[Object])? 
-   ('{' 
+   (LBRACERule 
 	attributes+=Attribute*
-	'}')?;
+	RBRACERule)?;
 Attribute:
 	name=ID ':' type=AttributeType  
 ;
@@ -32,42 +36,49 @@ Database:
 'Datenbank' name=ID conn=Connection
 ;
 Connection:
-	'verbindet' 'mit' host=Host ',' pass=Password ',' port=Port
+	'verbindet' 'mit' host=Host ',' conName = ConnName ',' usrName = Username ',' pass=Password ',' port=Port
 ;
 Host: 
 'Host' ':' v=STRING /*ANY_OTHER */
 ;
-Password: 
-'Passwort' ':' name=STRING
-;
-Port: 
-'Port' ':' v=INT
-;
-Setting:
-	'In' dbObj = [Database] '{'
+ConnName: 'Verbindungsname' ':' v=STRING;
+Username : 'Nutzername' ':' v=STRING;
+Password: 'Passwort' ':' v=STRING;
+Port: 'Port' ':' v=INT;
+Query:
+	'In' dbObj = [Database] LBRACERule
 		((create=Create | insert=Insert | select=Select | delete= Delete | update=Update)*)?
-	'}'
+	RBRACERule
 ;
 Create:
-	'Erzeuge' table+=[Object]* 
+	'Erzeuge' table+=[Object]
 ;
 Insert:
-	'Füge' 'zu' table=[Object] '{'
-	
-	'}'
+	'Füge' 'zu' table=[Object] LBRACERule
+		
+	RBRACERule
 ;
 Select:
-	'Zeige' show=('alle'|'item') 'von' table=[Object] (cond=Condition)?
+	'Zeige' 'von' table = [Object] LBRACERule
+	
+	RBRACERule (condition=Condition)?/*show=('alle'|'item') 'von' table=[Object] (cond=Condition)?*/
 ;
 Condition:
 	'wobei' condi=('blah')
 ;
 Delete:
-	'Lösche' item=('alle'|'blah') 'von' table =[Object] (cond=Condition)?
+	'Lösche' 'aus' table=[Object] LBRACERule 
+		
+		RBRACERule (condition=Condition)?/*item=('alle'|'blah') 'von' table =[Object] (cond=Condition)?*/
 ;
 Update:
-	'Ändere' item=('blah') 'auf' value=('blah') 'von' table=[Object] cond=Condition
-; 
+	'Ändere' 'in' table=[Object]  LBRACERule
+	
+	
+	 LBRACERule (condition=Condition)?
+;
+terminal LBRACERule:'{';
+terminal RBRACERule:'}';
 //terminal ID:('A'..'Z' | 'a'..'z'| '_' | '!') ('a'..'z'|'A'..'Z'|'_'|'0'..'9'| '!')*;
 //terminal ANY_OTHER:('A'..'Z'|'a'..'z'|'/'|'0'..'9')('A'..'Z'|'a'..'z'|'0'..'9'|'.'|':')*;
 //terminal cusHost:('A'..'Z'|'a'..'z'|'0'..'9')('A'..'Z'|'a'..'z'|'0'..'9'|'.'|':'|'/')*;

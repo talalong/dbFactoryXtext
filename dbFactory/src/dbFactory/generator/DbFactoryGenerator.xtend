@@ -7,6 +7,16 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import dbFactory.dbFactory.Command
+import dbFactory.dbFactory.Object
+import dbFactory.dbFactory.AttributeType
+import dbFactory.dbFactory.StandartType
+import dbFactory.dbFactory.ObjectType
+import dbFactory.dbFactory.Database
+import dbFactory.dbFactory.Model
+import java.util.List
+import dbFactory.dbFactory.CommandType
+import dbFactory.dbFactory.Query
 
 /**
  * Generates code from your model files on save.
@@ -19,7 +29,112 @@ class DbFactoryGenerator extends AbstractGenerator {
 //		fsa.generateFile('greetings.txt', 'People to greet: ' + 
 //			resource.allContents
 //				.filter(Greeting)
-//				.map[name]
+//				.map[name]comilep
 //				.join(', '))
+		for(model:resource.allContents.toIterable.filter(Model)){
+			for(CommandType type: model.cmdTypes)
+			{
+				if(type instanceof Object) fsa.generateFile( '''object/«type.name».java''', type.genFile)
+				if(type instanceof Database) fsa.generateFile('''database/«type.name».java''',type.genFile)
+				//if(type instanceof Query) fsa.generateFile('''query''')
+			}
+			//
+			//fsa.generateFile("database/"+e.db.name + ".java",e.db.compileDB)
+//			for( resource.contents as List<Model>)
+//			{
+//			for(CommandType type : model.cmdTypes)
+//			{
+//				
+		}
+	}
+	
+	def CharSequence genFile(Object object)
+	{
+				'''
+		package entities;
+		public class «object.name» «IF object.superType != null» extends «object.superType.name» «ENDIF» {
+			«FOR attribute : object.attributes»
+			private «attribute.type.compile» «attribute.name»;
+			«ENDFOR»
+			
+			«FOR attribute: object.attributes»
+			public «attribute.type.compile» get«attribute.name.toFirstUpper»(){
+				return «attribute.name»;
+			}
+			
+			public void set«attribute.name.toFirstUpper» («attribute.type.compile» _arg){
+			this.«attribute.name» = _arg;
+			}
+			«ENDFOR»
+		}
+		'''
+	}
+	def CharSequence genFile(Database database)
+	{
+		'''
+		package database
+		import java.sql*;
+		public class «database.name»{
+			//public 
+			public static void CreateConnection(){
+				try{
+				Class.forname("com.mysql.jdbc.Driver");
+				Connection con = DriverManager.getConnection("jdbc:mysql://«database.conn.host.v»:«database.conn.port.v»/«database.conn.conName.v»","«database.conn.usrName.v»","«database.conn.pass.v»");
+				Statement stmt=con.createStatement();  
+				ResultSet rs=stmt.executeQuery("«buildQuery»");  
+				while(rs.next())  
+				//System.out.println(rs.getInt(1)+"  "+rs.getString(2)+"  "+rs.getString(3));  
+				con.close();  
+				}catch(Exception e){ System.out.println(e);}  
+				}  
+			}
+		}
+		'''
+	}
+	def buildQuery(){
+		'''select * from table_abc'''
+	}
+	def test (){
+		Class::forName("com.mysql.jdbc.Driver");
+	}
+	
+	def CharSequence genFile(Query query)
+	{
+		
+	}
+	
+//	def dispatch genFile(Object object)
+//	{
+//			'''
+//		package entities;
+//		public class «object.name» «IF object.superType != null» extends «object.superType.name» «ENDIF» {
+//			
+//			«FOR attribute : object.attributes»
+//			private «attribute.type.compile» «attribute.name»;
+//			«ENDFOR»
+//			
+//			«FOR attribute: object.attributes»
+//			public «attribute.type.compile» get«attribute.name.toFirstUpper»(){
+//				return «attribute.name»;
+//			}
+//			
+//			public void set«attribute.name.toFirstUpper» («attribute.type.compile» _arg){
+//			this.«attribute.name» = _arg;
+//			}
+//			«ENDFOR»
+//		}
+//		'''
+//	}
+
+	def compile(AttributeType attType){
+		attType.elementType.typetoString + if(attType.array) "[]" else ""
+	}
+	def dispatch typetoString(StandartType type){
+		if(type.typeName.toLowerCase == "text") "String"
+		else if(type.typeName.toLowerCase == "zahl") "double"
+		else type.typeName
+	}
+	def dispatch typetoString(ObjectType type){
+		type.typeObj.name
 	}
 }
