@@ -13,20 +13,22 @@ CommandType:
 	Object | Database | Query
 ;
 Object: 
-('Objekt') name=ID ('von' superType=[Object])? 
+('Objekt') name=ID ('von' superType = [Object])? 
    (LBRACERule 
 	attributes+=Attribute*
 	RBRACERule)?;
 Attribute:
-	name=ID ':' type=AttributeType  
+	v = AttributeName ':' type=AttributeType  
 ;
+AttributeName: name = ID;
+
 AttributeType:
 	elementType=ElementType(array ?= '['(length=INT)']')?
 ;
 ElementType:
-	StandartType | ObjectType
+	StandardType | ObjectType
 ;
-StandartType:
+StandardType:
 	typeName = ('Text'|'text'|'Zahl'|'zahl')
 ;
 ObjectType:
@@ -46,36 +48,38 @@ Username : 'Nutzername' ':' v=STRING;
 Password: 'Passwort' ':' v=STRING;
 Port: 'Port' ':' v=INT;
 Query:
-	'In' dbObj = [Database] LBRACERule
-		((create=Create | insert=Insert | select=Select | delete= Delete | update=Update)*)?
+	'In' name = [Database] LBRACERule
+		(stmts+=Create | stmts+=Insert | stmts+= Select | stmts+=Delete | stmts+=Update)+ // Warum nicht *
 	RBRACERule
 ;
+Statements:
+	Create | Insert | Select | Delete | Update
+;
 Create:
-	'Erzeuge' table+=[Object]
+	'Erzeuge' table= [Object]
 ;
 Insert:
-	'Füge' 'zu' table=[Object] LBRACERule
+	'Füge' 'zu' table= [Object] LBRACERule
 		
 	RBRACERule
 ;
 Select:
-	'Zeige' 'von' table = [Object] LBRACERule
-	
-	RBRACERule (condition=Condition)?/*show=('alle'|'item') 'von' table=[Object] (cond=Condition)?*/
+	'Zeige' 'von' table = [Object] '('
+		((columns += /*[*/AttributeName/*]*/  (',')?))?  /*[AttributeName]*/
+	')' ( 'wobei' (conditions+=Condition)*)?/*show=('alle'|'item') 'von' table=[Object] (cond=Condition)?*/
 ;
+//Param:s=[AttributeName];
 Condition:
-	'wobei' condi=('blah')
+	 attName=/*[ */AttributeName/*] */ '=' v=STRING (',')?
 ;
 Delete:
 	'Lösche' 'aus' table=[Object] LBRACERule 
 		
-		RBRACERule (condition=Condition)?/*item=('alle'|'blah') 'von' table =[Object] (cond=Condition)?*/
+		RBRACERule (condition = Condition)?/*item=('alle'|'blah') 'von' table =[Object] (cond=Condition)?*/
 ;
 Update:
-	'Ändere' 'in' table=[Object]  LBRACERule
-	
-	
-	 LBRACERule (condition=Condition)?
+	'Ändere' 'in' table = [Object]  LBRACERule	
+	 LBRACERule (condition = Condition)?
 ;
 terminal LBRACERule:'{';
 terminal RBRACERule:'}';

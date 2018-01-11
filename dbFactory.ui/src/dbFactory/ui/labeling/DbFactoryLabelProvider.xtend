@@ -7,6 +7,19 @@ import com.google.inject.Inject
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider
 import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider
 import dbFactory.dbFactory.Database
+import dbFactory.dbFactory.Attribute
+import dbFactory.dbFactory.StandardType
+import dbFactory.dbFactory.AttributeType
+import dbFactory.dbFactory.ObjectType
+import dbFactory.dbFactory.Object
+import dbFactory.dbFactory.Query
+import dbFactory.dbFactory.Connection
+import dbFactory.dbFactory.Model
+import dbFactory.dbFactory.Host
+import dbFactory.dbFactory.ConnName
+import dbFactory.dbFactory.Username
+import dbFactory.dbFactory.Password
+import dbFactory.dbFactory.Port
 
 /**
  * Provides labels for EObjects.
@@ -21,8 +34,43 @@ class DbFactoryLabelProvider extends DefaultEObjectLabelProvider {
 	}
 
 	// Labels and icons can be computed like this:
-	def text(dbFactory.dbFactory.Object ob){'Klasse ' +  ob.name}
+	def text(Object ob){'Klasse ' +  ob.name}
 	def text(Database db){ 'DBKlasse ' + db.name}
+	def text(Attribute attribute){
+		attribute.v.name + 
+		if(attribute.type !== null)
+			" : " + attribute.type.compile
+		else
+			""
+	}
+	def text(Query query){ 'Klasse Abfrage'}
+	def text(Connection con){'Eigenschaften'}
+	def text(Host host){'Host : '  + if (host !== null) {host.v} else {"unbekannt"}}
+	def text(Port port){'Port : ' + if(port !== null){port.v}else{"unbekannt"}}
+	def text(ConnName conName){'Verbindungsname : ' + if(conName !== null){conName.v}else{"unbekannt"}}
+	def text(Username usr){'Benutzername : ' +  if(usr !== null){usr.v}else{"unbekannt"}}
+	def text(Password pass){'Passwort : ' + if(pass !== null){pass.v}else{"unbekannt"}}
+	//def image(Model m){"project.png"}
+	def image (Object ob){"object.png"}	
+	def image (Attribute att){"attribute.png"}
+	def image(Database db){"database.png"}
+	def image(Query q){"frage.png"}
+	def image(Connection con){"attribute.png"}
+	def image(Host h){"circle.png"}
+	def image(ConnName c){"circle.png"}
+	def image(Username n){"circle.png"}
+	def image(Password p){"circle.png"}
+	def image(Port p){"circle.png"}
+	def compile(AttributeType attType){
+		attType.elementType.typetoString
+		+ if(attType.array) "[]" else ""
+	}
+	def dispatch typetoString(StandardType type){
+		 type.typeName
+	}
+	def dispatch typetoString(ObjectType type){
+		type.typeObj.name
+	}
 //	def text(Greeting ele) {
 //		'A greeting to ' + ele.name
 //	}

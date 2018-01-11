@@ -6,6 +6,8 @@ package dbFactory.validation
 import dbFactory.dbFactory.Command
 import dbFactory.dbFactory.DbFactoryPackage
 import org.eclipse.xtext.validation.Check
+import dbFactory.dbFactory.Attribute
+import dbFactory.dbFactory.Select
 
 /**
  * This class contains custom validation rules. 
@@ -13,8 +15,9 @@ import org.eclipse.xtext.validation.Check
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class DbFactoryValidator extends AbstractDbFactoryValidator {
-	public static val SENTENCE_STARTS_CAPITAL = 'sentenceStartsCapital'
-	
+	public static val SENTENCE_STARTS_CAPITAL = 'sentenceStartsCapital';
+	protected static val ISSUE_CODE_PREFIX = "dbFactory.";
+	public static val UNKNOWN_PROPERTY = ISSUE_CODE_PREFIX + "unbekantes Attribut";
 //	public static val INVALID_NAME = 'invalidName'
 //
 //	@Check
@@ -32,5 +35,37 @@ class DbFactoryValidator extends AbstractDbFactoryValidator {
 	 	{
 	 		warning('Der Name muss mit großem Buchstabe starten',DbFactoryPackage.Literals.COMMAND__OBJ,SENTENCE_STARTS_CAPITAL)
 	 	}
+	 }
+	 
+	 @Check
+	 def checkAttributeStartWithCap(Attribute att){
+	 	if(!Character.isUpperCase(att.v.name.charAt(0))){
+	 		warning('Der Name muss mit großem Buchstabe starten',DbFactoryPackage.Literals.ATTRIBUTE_NAME__NAME,SENTENCE_STARTS_CAPITAL)
+	 	}
+	 }
+	 @Check
+	 def checkMemberSelect(Select select){
+	 	//error('asd ' + select.columns.length ,DbFactoryPackage.eINSTANCE.select_Columns,UNKNOWN_PROPERTY)
+	 	for(id : select.columns){
+	 		var i = 0;
+	 		//select.table.attributes.filter()
+	 		for(a: select.table.attributes){
+	 			if(id.name.equals(a.v.name))
+	 				{return} //neinnnnnnnnn
+	 			else if(i==select.table.attributes.length-1)
+	 				{error("'"+ id.name.toUpperCase + "' wurde in '"+ select.table.name.toUpperCase + a.v.name +"' nicht gefunden",DbFactoryPackage.eINSTANCE.select_Columns,UNKNOWN_PROPERTY,a.v.name)	
+	 		}	else
+	 				{i++}
+	 		}		
+	 	}
+//		for(id : select.columns){
+//			//if(!select.table.attributes.contains(id))
+//			
+//			for(a: select.table.attributes)
+//			{
+//				if(id !== a.v.name)
+//					
+//			}
+//		}
 	 }
 }

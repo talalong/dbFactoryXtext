@@ -7,16 +7,21 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
-import dbFactory.dbFactory.Command
 import dbFactory.dbFactory.Object
 import dbFactory.dbFactory.AttributeType
-import dbFactory.dbFactory.StandartType
+import dbFactory.dbFactory.StandardType
 import dbFactory.dbFactory.ObjectType
 import dbFactory.dbFactory.Database
 import dbFactory.dbFactory.Model
-import java.util.List
 import dbFactory.dbFactory.CommandType
 import dbFactory.dbFactory.Query
+import dbFactory.dbFactory.Create
+import dbFactory.dbFactory.Select
+import dbFactory.dbFactory.Update
+import dbFactory.dbFactory.Insert
+import dbFactory.dbFactory.Delete
+import dbFactory.dbFactory.Statements
+import dbFactory.dbFactory.Attribute
 
 /**
  * Generates code from your model files on save.
@@ -33,10 +38,10 @@ class DbFactoryGenerator extends AbstractGenerator {
 //				.join(', '))
 		for(model:resource.allContents.toIterable.filter(Model)){
 			for(CommandType type: model.cmdTypes)
-			{
+			{	
 				if(type instanceof Object) fsa.generateFile( '''object/«type.name».java''', type.genFile)
 				if(type instanceof Database) fsa.generateFile('''database/«type.name».java''',type.genFile)
-				//if(type instanceof Query) fsa.generateFile('''query''')
+				if(type instanceof Query) fsa.generateFile('''query/Query«type.name.name».java''',type.genFile)
 			}
 			//
 			//fsa.generateFile("database/"+e.db.name + ".java",e.db.compileDB)
@@ -51,19 +56,19 @@ class DbFactoryGenerator extends AbstractGenerator {
 	def CharSequence genFile(Object object)
 	{
 				'''
-		package entities;
-		public class «object.name» «IF object.superType != null» extends «object.superType.name» «ENDIF» {
+		package object;
+		public class «object.name» «IF object.superType !== null» extends «object.superType.name» «ENDIF» {
 			«FOR attribute : object.attributes»
-			private «attribute.type.compile» «attribute.name»;
+			private «attribute.type.compile» «attribute.v.name»;
 			«ENDFOR»
 			
 			«FOR attribute: object.attributes»
-			public «attribute.type.compile» get«attribute.name.toFirstUpper»(){
-				return «attribute.name»;
+			public «attribute.type.compile» get«attribute.v.name.toFirstUpper»(){
+				return «attribute.v.name»;
 			}
 			
-			public void set«attribute.name.toFirstUpper» («attribute.type.compile» _arg){
-			this.«attribute.name» = _arg;
+			public void set«attribute.v.name.toFirstUpper» («attribute.type.compile» _arg){
+			this.«attribute.v.name» = _arg;
 			}
 			«ENDFOR»
 		}
@@ -72,10 +77,13 @@ class DbFactoryGenerator extends AbstractGenerator {
 	def CharSequence genFile(Database database)
 	{
 		'''
-		package database
+		package database;
 		import java.sql*;
+		import query.*;
 		public class «database.name»{
-			//public 
+			private static void main(String[] args) {
+				
+			}
 			public static void CreateConnection(){
 				try{
 				Class.forname("com.mysql.jdbc.Driver");
@@ -100,36 +108,88 @@ class DbFactoryGenerator extends AbstractGenerator {
 	
 	def CharSequence genFile(Query query)
 	{
-		
+		'''
+		package Query;
+		public class Query {
+			«FOR stmt: query.stmts»
+				«IF stmt instanceof Create»
+					public static String «stmt.buildStmt»
+				«ENDIF»
+				«IF stmt instanceof Select»
+					public static String «stmt.buildStmt»
+				«ENDIF»
+				«IF stmt instanceof Update»
+					public static String «stmt.buildStmt»
+				«ENDIF»
+				«IF stmt instanceof Insert»
+					public static String «stmt.buildStmt»
+				«ENDIF»
+				«IF stmt instanceof Delete»
+					public static String «stmt.buildStmt»
+				«ENDIF»
+			«ENDFOR»
+		}
+		'''
 	}
 	
-//	def dispatch genFile(Object object)
-//	{
-//			'''
-//		package entities;
-//		public class «object.name» «IF object.superType != null» extends «object.superType.name» «ENDIF» {
-//			
-//			«FOR attribute : object.attributes»
-//			private «attribute.type.compile» «attribute.name»;
-//			«ENDFOR»
-//			
-//			«FOR attribute: object.attributes»
-//			public «attribute.type.compile» get«attribute.name.toFirstUpper»(){
-//				return «attribute.name»;
-//			}
-//			
-//			public void set«attribute.name.toFirstUpper» («attribute.type.compile» _arg){
-//			this.«attribute.name» = _arg;
-//			}
-//			«ENDFOR»
-//		}
-//		'''
-//	}
-
+	def buildStmt(Create create){
+		'''CREATE_«create.table.name.toUpperCase» = 
+		"«create.buildStmtCmd»";
+		'''
+	}
+	def buildStmtCmd(Create create){
+		"CREATE TABLE " +
+		create.table.name +
+		 "("+'''id INT«IF create.table.attributes.length > 0»,«IF create.table.superType !== null»«create.table.name»_ID INT, «ENDIF»«FOR Attribute a: create.table.attributes»«a.v.name»«a.type.typeToChar»«IF create.table.attributes.indexOf(a) < create.table.attributes.length -1 »,«ENDIF»«ENDFOR»«ENDIF»);''' 
+	}
+	def buildStmt(Select select){
+		'''SELECT_«select.table.name.toUpperCase» = 
+		"«select.buildStmtCmd»"
+		'''
+	}
+	def buildStmtCmd(Select select){
+		"SELECT " +
+		'''«IF select.columns.isNullOrEmpty» * «ELSE»«FOR col:select.columns»«col.name»«IF select.columns.indexOf(col) < select.columns.length -1 »,«ENDIF»«ENDFOR»«ENDIF» FROM «select.table.name» «select.buildStmtCondition»;'''
+	}
+	def buildStmtCondition(Select select){
+		if(!select.conditions.isNullOrEmpty){
+			"WHERE " +
+			'''«FOR con: select.conditions»«con.attName.name»= '«con.v»'«IF select.conditions.indexOf(con) < select.conditions.length -1 » AND «ENDIF»«ENDFOR»'''
+		}
+	}
+	def buildStmt(Update update){
+		'''UPDATE_«update.table.name.toUpperCase»  '''
+	}
+	def buildStmt(Insert insert){
+		'''INSERT_«insert.table.name.toUpperCase» ... '''
+	}
+	def buildStmt(Delete delete){
+		'''DELETE_«delete.table.name.toUpperCase» ... '''
+	}
+	/*def createColumns(Attribute a){
+		a.type.typeToChar(a.name)
+	}*/
+	
+	def typeToChar(AttributeType attType){
+	 	  attType.elementType.typeVarchar
+	}
+	
+	def dispatch getTypeVarchar(StandardType type){
+		if(type.typeName.toLowerCase == "text") " VARCHAR(50)"
+		else if(type.typeName.toLowerCase =="zahl") " DOUBLE"
+	}
+	def dispatch getTypeVarchar(ObjectType type){
+		 // todo: noch unsicher
+		 	"_ID INT"
+		//for (Attribute a:type.typeObj.attributes)
+		//{
+		//	a.type.elementType.typetoString
+	//	}
+	}
 	def compile(AttributeType attType){
 		attType.elementType.typetoString + if(attType.array) "[]" else ""
 	}
-	def dispatch typetoString(StandartType type){
+	def dispatch typetoString(StandardType type){
 		if(type.typeName.toLowerCase == "text") "String"
 		else if(type.typeName.toLowerCase == "zahl") "double"
 		else type.typeName

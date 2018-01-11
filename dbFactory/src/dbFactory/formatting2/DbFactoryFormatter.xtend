@@ -18,9 +18,10 @@ class DbFactoryFormatter extends AbstractFormatter2 {
 	def dispatch void format(Model model, extension IFormattableDocument document) {
 		// TODO: format HiddenRegions around keywords, attributes, cross references, etc. 
 		for (CommandType commandType : model.getCmdTypes()) {
-			commandType.format;
+			//commandType.format;	
 			
 		}
+		
 	}
 
 	def dispatch void format(Command command, extension IFormattableDocument document) {
@@ -29,6 +30,7 @@ class DbFactoryFormatter extends AbstractFormatter2 {
 		command.getDb.format;
 		command.getQuery.format;
 	}
+	
 	
 	// TODO: implement for Object, Attribute, AttributeType, Database, Connection, Query, Select, Delete, Update
 }
