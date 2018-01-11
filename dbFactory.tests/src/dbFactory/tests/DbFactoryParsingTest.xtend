@@ -34,10 +34,13 @@ class DbFactoryParsingTest {
 			Person: Person
 			
 		}
+		
 		Objekt Student von Person{
 			Matrikelnummer: Text
 		}
-	
+			Objekt Person{
+						Balh:Text
+					}
 		''')
 		
 		v.assertNoErrors(result)
@@ -48,16 +51,7 @@ class DbFactoryParsingTest {
 	def void loadDatabase(){
 		val result = parseHelper.parse(
 		'''
-	Datenbank mySQL verbindet mit Host:'ThisIsMyHost', Nutzername: 'Bla', Passwort:'abc123', Port:8080
-				In mySQL 
-				{
-					Erzeuge Person
-					Füge zu Person {}
-					Zeige von Person (Name, Alter) wobei Name = "long",Alter= "23"
-					Füge zu Person{}
-					Lösche aus Person {}
-					Ändere in Person {}
-				}
+	
 						''')
 		v.assertNoErrors(result)
 //		Assert.assertNotNull(result)

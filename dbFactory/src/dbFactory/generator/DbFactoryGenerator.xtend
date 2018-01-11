@@ -42,6 +42,9 @@ class DbFactoryGenerator extends AbstractGenerator {
 				if(type instanceof Object) fsa.generateFile( '''object/«type.name».java''', type.genFile)
 				if(type instanceof Database) fsa.generateFile('''database/«type.name».java''',type.genFile)
 				if(type instanceof Query) fsa.generateFile('''query/Query«type.name.name».java''',type.genFile)
+				//run all query in main class
+				// generating main class and main method
+				fsa.generateFile('''main/main.java''',genFile)
 			}
 			//
 			//fsa.generateFile("database/"+e.db.name + ".java",e.db.compileDB)
@@ -52,60 +55,53 @@ class DbFactoryGenerator extends AbstractGenerator {
 //				
 		}
 	}
-	
+	def CharSequence genFile(){
+		'''
+		package main;
+		import object.*;
+		import query.*;
+		import database.*;
+		import java.sql*;
+				public class main{
+					private static void main(String[] args) {
+									
+								}
+					public static void CreateConnection(){
+						try{
+						Class.forname("com.mysql.jdbc.Driver");
+						Connection con = DriverManager.getConnection("jdbc:mysql://HOST:PORT/CONNECTIONNAME, USERNAME,PASSWORD);
+						Statement stmt=con.createStatement();  
+						ResultSet rs=stmt.executeQuery("«/*getQuery*/»");  
+						while(rs.next())  
+						//System.out.println(rs.getInt(1)+"  "+rs.getString(2)+"  "+rs.getString(3));  
+						con.close();  
+						}catch(Exception e){ System.out.println(e);}  
+						}  
+					}
+				}
+		'''
+	}
 	def CharSequence genFile(Object object)
 	{
 				'''
 		package object;
 		public class «object.name» «IF object.superType !== null» extends «object.superType.name» «ENDIF» {
 			«FOR attribute : object.attributes»
-			private «attribute.type.compile» «attribute.v.name»;
+			private «attribute.type.compile» «attribute.name»;
 			«ENDFOR»
 			
 			«FOR attribute: object.attributes»
-			public «attribute.type.compile» get«attribute.v.name.toFirstUpper»(){
-				return «attribute.v.name»;
+			public «attribute.type.compile» get«attribute.name.toFirstUpper»(){
+				return «attribute.name»;
 			}
 			
-			public void set«attribute.v.name.toFirstUpper» («attribute.type.compile» _arg){
-			this.«attribute.v.name» = _arg;
+			public void set«attribute.name.toFirstUpper» («attribute.type.compile» _arg){
+			this.«attribute.name» = _arg;
 			}
 			«ENDFOR»
 		}
 		'''
 	}
-	def CharSequence genFile(Database database)
-	{
-		'''
-		package database;
-		import java.sql*;
-		import query.*;
-		public class «database.name»{
-			private static void main(String[] args) {
-				
-			}
-			public static void CreateConnection(){
-				try{
-				Class.forname("com.mysql.jdbc.Driver");
-				Connection con = DriverManager.getConnection("jdbc:mysql://«database.conn.host.v»:«database.conn.port.v»/«database.conn.conName.v»","«database.conn.usrName.v»","«database.conn.pass.v»");
-				Statement stmt=con.createStatement();  
-				ResultSet rs=stmt.executeQuery("«buildQuery»");  
-				while(rs.next())  
-				//System.out.println(rs.getInt(1)+"  "+rs.getString(2)+"  "+rs.getString(3));  
-				con.close();  
-				}catch(Exception e){ System.out.println(e);}  
-				}  
-			}
-		}
-		'''
-	}
-	def buildQuery(){
-		'''select * from table_abc'''
-	}
-	def test (){
-		Class::forName("com.mysql.jdbc.Driver");
-	}
-	
 	def CharSequence genFile(Query query)
 	{
 		'''
@@ -131,49 +127,114 @@ class DbFactoryGenerator extends AbstractGenerator {
 		}
 		'''
 	}
+	def CharSequence genFile(Database database)
+	{
+		'''
+		package database;
+		import java.sql*;
+		import query.*;
+		public class «database.name»{
+			public static String HOST = "«database.conn.host.v»";
+			public static String CONNECTIONNAME = "«database.conn.conName.v»";
+			public static String USERNAME = "«database.conn.usrName.v»";
+			public static String PASSWORD = "«database.conn.pass.v»";
+			public static Int PORT = "«database.conn.port.v»";
+		}
+		'''
+	}
+	def getQuery(Create create){
+		'''CREATE_«create.table»'''
+	}
+	def getQuery(Insert insert){
+		'''select * from table_abc'''
+	}
+	def getQuery(Select select){
+		'''select * from table_abc'''
+	}
+	def getQuery(Delete delete){
+		'''select * from table_abc'''
+	}
+	def getQuery(Update update){
+		'''select * from table_abc'''
+	}
+	def test (){
+		Class::forName("com.mysql.jdbc.Driver");
+	}
 	
 	def buildStmt(Create create){
 		'''CREATE_«create.table.name.toUpperCase» = 
-		"«create.buildStmtCmd»";
+		"«create.buildStmtCmd»;";
 		'''
 	}
 	def buildStmtCmd(Create create){
 		"CREATE TABLE " +
 		create.table.name +
-		 "("+'''id INT«IF create.table.attributes.length > 0»,«IF create.table.superType !== null»«create.table.name»_ID INT, «ENDIF»«FOR Attribute a: create.table.attributes»«a.v.name»«a.type.typeToChar»«IF create.table.attributes.indexOf(a) < create.table.attributes.length -1 »,«ENDIF»«ENDFOR»«ENDIF»);''' 
+		 "("+'''id INT NOT NULL AUTO_INCREMENT«IF create.table.attributes.length > 0»,«IF create.table.superType !== null»«create.table.name»_ID INT, «ENDIF»«FOR Attribute a: create.table.attributes»«a.name»«a.type.typeToChar»«IF create.table.attributes.indexOf(a) < create.table.attributes.length -1 », «ENDIF»«ENDFOR»«ENDIF»)''' 
 	}
+
 	def buildStmt(Select select){
 		'''SELECT_«select.table.name.toUpperCase» = 
-		"«select.buildStmtCmd»"
+		"«select.buildStmtCmd»;";
 		'''
 	}
 	def buildStmtCmd(Select select){
+
 		"SELECT " +
-		'''«IF select.columns.isNullOrEmpty» * «ELSE»«FOR col:select.columns»«col.name»«IF select.columns.indexOf(col) < select.columns.length -1 »,«ENDIF»«ENDFOR»«ENDIF» FROM «select.table.name» «select.buildStmtCondition»;'''
+		'''«IF select.columns.isNullOrEmpty»*«ELSE»«FOR col:select.columns»«col.name»«IF select.columns.indexOf(col) < select.columns.length -1 », «ENDIF»«ENDFOR»«ENDIF» FROM «select.table.name» «select.buildStmtCondition»'''
 	}
 	def buildStmtCondition(Select select){
+
 		if(!select.conditions.isNullOrEmpty){
 			"WHERE " +
 			'''«FOR con: select.conditions»«con.attName.name»= '«con.v»'«IF select.conditions.indexOf(con) < select.conditions.length -1 » AND «ENDIF»«ENDFOR»'''
 		}
 	}
+	
 	def buildStmt(Update update){
-		'''UPDATE_«update.table.name.toUpperCase»  '''
+		'''UPDATE_«update.table.name.toUpperCase»=
+		"«update.buildStmtCmd»;";
+		'''
+	}
+	def buildStmtCmd(Update update){
+		"UPDATE " + update.table.name + " SET "+ 
+		'''(«FOR col: update.columns»«col.name»«IF update.columns.indexOf(col) < update.columns.length -1 », «ENDIF»«ENDFOR») VALUES («FOR v:update.v»'«v»'«IF update.v.indexOf(v) < update.v.length -1 », «ENDIF»«ENDFOR») «update.buildStmtCondition»'''
+	}
+	def buildStmtCondition(Update update){
+
+		if(!update.conditions.isNullOrEmpty){
+			"WHERE " +
+			'''«FOR con: update.conditions»«con.attName.name»= '«con.v»'«IF update.conditions.indexOf(con) < update.conditions.length -1 » AND «ENDIF»«ENDFOR»'''
+		}
 	}
 	def buildStmt(Insert insert){
-		'''INSERT_«insert.table.name.toUpperCase» ... '''
+
+		'''INSERT_«insert.table.name.toUpperCase»=
+		"«insert.buildStmtCmd»;";
+		'''
 	}
+	def buildStmtCmd(Insert insert){
+		"INSERT INTO "+ insert.table.name +
+		'''(«FOR col: insert.columns»«col.name»«IF insert.columns.indexOf(col) < insert.columns.length -1 », «ENDIF»«ENDFOR») VALUES («FOR v:insert.v»'«v»'«IF insert.v.indexOf(v) < insert.v.length -1 », «ENDIF»«ENDFOR»)'''
+	}
+	
 	def buildStmt(Delete delete){
-		'''DELETE_«delete.table.name.toUpperCase» ... '''
+		'''DELETE_«delete.table.name.toUpperCase» =
+		 "«delete.buildStmtCmd»;";
+		 	'''
 	}
-	/*def createColumns(Attribute a){
-		a.type.typeToChar(a.name)
-	}*/
+	def buildStmtCmd(Delete delete){
+		"DELETE FROM " + delete.table.name + delete.buildStmtCondition
+	}
+	def buildStmtCondition(Delete delete){
+		if(!delete.conditions.isNullOrEmpty){
+			" WHERE "+
+			'''«FOR con: delete.conditions»«con.attName.name» = '«con.v»'«IF delete.conditions.indexOf(con) < delete.conditions.length -1 » AND «ENDIF»«ENDFOR»'''
+		}
+	}
 	
 	def typeToChar(AttributeType attType){
 	 	  attType.elementType.typeVarchar
 	}
-	
 	def dispatch getTypeVarchar(StandardType type){
 		if(type.typeName.toLowerCase == "text") " VARCHAR(50)"
 		else if(type.typeName.toLowerCase =="zahl") " DOUBLE"

@@ -6,6 +6,10 @@ Model:
 	//(command+=Command)*
 	(cmdTypes += Object | cmdTypes+=Database | cmdTypes += Query)+
 	;
+	
+QualifiedName:
+	ID('.'ID)*
+;	
 Command: 
 	obj = Object | db=Database | query = Query
 ;
@@ -18,7 +22,7 @@ Object:
 	attributes+=Attribute*
 	RBRACERule)?;
 Attribute:
-	v = AttributeName ':' type=AttributeType  
+	name=ID ':' type=AttributeType  
 ;
 AttributeName: name = ID;
 
@@ -40,9 +44,7 @@ Database:
 Connection:
 	'verbindet' 'mit' host=Host ',' conName = ConnName ',' usrName = Username ',' pass=Password ',' port=Port
 ;
-Host: 
-'Host' ':' v=STRING /*ANY_OTHER */
-;
+Host: 'Host' ':' v=STRING ;
 ConnName: 'Verbindungsname' ':' v=STRING;
 Username : 'Nutzername' ':' v=STRING;
 Password: 'Passwort' ':' v=STRING;
@@ -59,31 +61,28 @@ Create:
 	'Erzeuge' table= [Object]
 ;
 Insert:
-	'Füge' 'zu' table= [Object] LBRACERule
-		
-	RBRACERule
+	'Füge' 'zu' table= [Object] '('	
+	(columns += [Attribute| QualifiedName] '=' v+=STRING (',')?)*
+	')' 
 ;
 Select:
 	'Zeige' 'von' table = [Object] '('
-		((columns += /*[*/AttributeName/*]*/  (',')?))?  /*[AttributeName]*/
-	')' ( 'wobei' (conditions+=Condition)*)?/*show=('alle'|'item') 'von' table=[Object] (cond=Condition)?*/
+		columns += [Attribute|QualifiedName]*
+	')' ( WhereCon (conditions+=Condition)*)?
 ;
 //Param:s=[AttributeName];
 Condition:
-	 attName=/*[ */AttributeName/*] */ '=' v=STRING (',')?
+	 attName=[Attribute|QualifiedName]  '=' v=STRING (',')?
 ;
 Delete:
-	'Lösche' 'aus' table=[Object] LBRACERule 
-		
-		RBRACERule (condition = Condition)?/*item=('alle'|'blah') 'von' table =[Object] (cond=Condition)?*/
+	'Lösche' 'aus' table=[Object]  	
+		 (where?=WhereCon (conditions += Condition)*)?
 ;
+WhereCon:('wobei');
 Update:
-	'Ändere' 'in' table = [Object]  LBRACERule	
-	 LBRACERule (condition = Condition)?
+	'Ändere' 'in' table = [Object]  '('
+	(columns += [Attribute|QualifiedName] '=' v+=STRING)* 
+	 ')' (where?=WhereCon (conditions += Condition)*)?
 ;
 terminal LBRACERule:'{';
 terminal RBRACERule:'}';
-//terminal ID:('A'..'Z' | 'a'..'z'| '_' | '!') ('a'..'z'|'A'..'Z'|'_'|'0'..'9'| '!')*;
-//terminal ANY_OTHER:('A'..'Z'|'a'..'z'|'/'|'0'..'9')('A'..'Z'|'a'..'z'|'0'..'9'|'.'|':')*;
-//terminal cusHost:('A'..'Z'|'a'..'z'|'0'..'9')('A'..'Z'|'a'..'z'|'0'..'9'|'.'|':'|'/')*;
-//terminal cusHost:('0'..'9')('0'..'9'|':')*;

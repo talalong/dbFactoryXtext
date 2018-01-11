@@ -8,6 +8,13 @@ import dbFactory.dbFactory.DbFactoryPackage
 import org.eclipse.xtext.validation.Check
 import dbFactory.dbFactory.Attribute
 import dbFactory.dbFactory.Select
+import dbFactory.dbFactory.Update
+import dbFactory.dbFactory.Model
+import dbFactory.dbFactory.CommandType
+import com.google.common.collect.HashMultimap
+import dbFactory.dbFactory.Database
+import dbFactory.dbFactory.Query
+import java.util.List
 
 /**
  * This class contains custom validation rules. 
@@ -18,16 +25,9 @@ class DbFactoryValidator extends AbstractDbFactoryValidator {
 	public static val SENTENCE_STARTS_CAPITAL = 'sentenceStartsCapital';
 	protected static val ISSUE_CODE_PREFIX = "dbFactory.";
 	public static val UNKNOWN_PROPERTY = ISSUE_CODE_PREFIX + "unbekantes Attribut";
+	public static val DUPLICATE_ELEMENT = ISSUE_CODE_PREFIX + "duplexes Elements";
 //	public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					DbFactoryPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
+
 	@Check
 	 def checkObjectStartWithCapital(Command command)
 	 {
@@ -39,33 +39,64 @@ class DbFactoryValidator extends AbstractDbFactoryValidator {
 	 
 	 @Check
 	 def checkAttributeStartWithCap(Attribute att){
-	 	if(!Character.isUpperCase(att.v.name.charAt(0))){
+	 	if(!Character.isUpperCase(att.name.charAt(0))){
 	 		warning('Der Name muss mit großem Buchstabe starten',DbFactoryPackage.Literals.ATTRIBUTE_NAME__NAME,SENTENCE_STARTS_CAPITAL)
 	 	}
 	 }
 	 @Check
+	 	def checkUpdateCondition(Update update){
+	 		if(!update.where){
+	 			error("Bedingung fehlt",DbFactoryPackage.eINSTANCE.update_Conditions,UNKNOWN_PROPERTY)	
+	 		
+	 		}
+	 	}
+//	 @Check
+//	 	def checkNoDuplicateObject(Model model){
+//	 		checkNoDuplicateElements(model.cmdTypes,"class")
+//	 	}
+//	 @Check
+//	 	def private void checkNoDuplicateElements(Iterable<? extends CommandType> cmdTypes, String desc){
+//	 		val multiMap = HashMultimap.create()
+//	 		for(type: cmdTypes){
+//	 			multiMap.put(type.name,type)
+//	 		}
+//	 		for (entry : multiMap.asMap.entrySet)
+//	 		 { val duplicates = entry.value
+//				if (duplicates.size > 1) {
+//					for (d : duplicates) error(
+//			"Duplicate " + desc + " '" + d.name + "'",
+//				d, DbFactoryPackage.eINSTANCE.model_CmdTypes,DUPLICATE_ELEMENT)
+//			} 
+//		}
+//	 } 	
+//	 def getName(Database da){
+//	 	da.name
+//	 }
+//	 def getName(Query q){
+//	 	q.name
+//	 }
+//	  def getName(Object ob){
+//	 	ob.name 
+//	 } 
+		def findID(List<Attribute> atts, String col){
+	 		for(a: atts){
+	 			if(col.equals(a.name)){
+	 				return true;
+	 			}
+	 		}
+	 		return false;
+	 	}
+	 @Check
 	 def checkMemberSelect(Select select){
 	 	//error('asd ' + select.columns.length ,DbFactoryPackage.eINSTANCE.select_Columns,UNKNOWN_PROPERTY)
+	 	//select.columns.findFirst[name.compareTo]
+	 	//var check = false;
+	 	//var i = 0;
+	 	
 	 	for(id : select.columns){
-	 		var i = 0;
-	 		//select.table.attributes.filter()
-	 		for(a: select.table.attributes){
-	 			if(id.name.equals(a.v.name))
-	 				{return} //neinnnnnnnnn
-	 			else if(i==select.table.attributes.length-1)
-	 				{error("'"+ id.name.toUpperCase + "' wurde in '"+ select.table.name.toUpperCase + a.v.name +"' nicht gefunden",DbFactoryPackage.eINSTANCE.select_Columns,UNKNOWN_PROPERTY,a.v.name)	
-	 		}	else
-	 				{i++}
-	 		}		
-	 	}
-//		for(id : select.columns){
-//			//if(!select.table.attributes.contains(id))
-//			
-//			for(a: select.table.attributes)
-//			{
-//				if(id !== a.v.name)
-//					
-//			}
-//		}
+	 		if(!findID(select.table.attributes,id.name)){
+	 			error("'"+ id.name.toUpperCase + "' wurde in '"+ select.table.name.toUpperCase +"' nicht gefunden",DbFactoryPackage.eINSTANCE.select_Columns,UNKNOWN_PROPERTY)
+	 		}
+		}
 	 }
 }

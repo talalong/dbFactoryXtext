@@ -37,7 +37,7 @@ class DbFactoryLabelProvider extends DefaultEObjectLabelProvider {
 	def text(Object ob){'Klasse ' +  ob.name}
 	def text(Database db){ 'DBKlasse ' + db.name}
 	def text(Attribute attribute){
-		attribute.v.name + 
+		attribute.name + 
 		if(attribute.type !== null)
 			" : " + attribute.type.compile
 		else
